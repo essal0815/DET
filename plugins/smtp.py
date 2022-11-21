@@ -65,7 +65,7 @@ def relay_email(data):
 def listen():
     port = config['port']
     app_exfiltrate.log_message('info', "[smtp] Starting SMTP server on port {}".format(port))
-    server = CustomSMTPServer(('', port), None)
+    server = CustomSMTPServer(('localhost', port), None)
     server.handler = app_exfiltrate.retrieve_data
     asyncore.loop()
 

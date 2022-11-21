@@ -26,7 +26,7 @@ def listen():
                     content = content.decode('hex')
                     app_exfiltrate.log_message('info', "[github] Receiving {} bytes within Gist".format(len(content)))
                     app_exfiltrate.retrieve_data(content)
-                except Exception, err:
+                except Exception as err:
                     # print(err)
                     pass
                 finally:

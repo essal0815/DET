@@ -22,6 +22,7 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from io import StringIO
+    from io import BytesIO
 
 if getattr(sys, 'frozen', False):
     os.chdir(sys._MEIPASS)
@@ -144,7 +145,9 @@ class Exfiltration(object):
         sys.path.insert(0, path)
         for f in os.listdir(path):
             fname, ext = os.path.splitext(f)
-            if ext == '.py' and self.should_use_plugin(fname):
+            # print(fname)
+            # print(ext)
+            if ext == '.py' and self.should_use_plugin(fname) and fname != '__init__' and fname != 'dukpt':
                 mod = __import__(fname)
                 plugins[fname] = mod.Plugin(self, config["plugins"][fname])
 
@@ -286,8 +289,8 @@ class ExfiltrateFile(threading.Thread):
         else:
             with open(self.file_to_send, 'rb') as f:
                 file_content = f.read()
-            buf = StringIO(file_content)
-            e = StringIO(file_content)
+            buf = BytesIO(file_content)
+            e = BytesIO(file_content)
         self.checksum = md5(buf)
         del file_content
 
@@ -434,7 +437,7 @@ def main():
     for thread in threads:
         while True:
             thread.join(1)
-            if not thread.isAlive():
+            if not thread.is_alive():
                 break
 
 if __name__ == '__main__':

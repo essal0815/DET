@@ -51,7 +51,7 @@ def sniff(handler):
                     try:
                         data = data.decode('hex')
                         handler(data)
-                    except Exception, e:
+                    except Exception as e:
                         app_exfiltrate.log_message(
                             'warning', "[tcp] Failed decoding message {}".format(e))
                 else:

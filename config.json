@@ -1,0 +1,45 @@
+{
+    "plugins": {
+        "http-plugin": {
+            "target": "10.42.0.76",
+            "port": 8080,
+            "proxies": ["192.168.0.13", "192.168.0.14"]
+        },
+        "dns": {
+            "key": "google.com",
+            "target": "10.42.0.76",
+            "port": 53,
+            "proxies": ["192.168.0.13", "192.168.0.14"]
+        },
+        "tcp": {
+            "target": "10.42.0.76",
+            "port": 6969,
+            "proxies": ["192.168.0.13", "192.168.0.14"]
+        },
+        "udp": {
+            "target": "10.42.0.76",
+            "port": 6969,
+            "proxies": ["192.168.0.13", "192.168.0.14"]
+        },
+        "icmp": {
+            "target": "10.42.0.76",
+            "proxies": ["192.168.0.13", "192.168.0.14"]
+        },
+        "smtp": {
+            "target": "10.42.0.76",
+            "port": 25,
+            "proxies": ["192.168.0.13", "192.168.0.14"]
+        },
+        "ftp": {
+            "target": "10.42.0.76",
+            "port": 21,
+            "proxies": ["192.168.0.13", "192.168.0.14"]
+        }
+    },
+    "AES_KEY": "THISISACRAZYKEY_1",
+    "max_time_sleep": 10,
+    "min_time_sleep": 1,
+    "max_bytes_read": 400,
+    "min_bytes_read": 300,
+    "compression": 1
+}
