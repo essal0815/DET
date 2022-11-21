@@ -6,7 +6,7 @@ config = None
 app_exfiltrate = None
 
 def send(data):
-    if config.has_key('proxies') and config['proxies'] != [""]:
+    if 'proxies' in config and config['proxies'] != [""]:
         targets = [config['target']] + config['proxies']
         target = choice(targets)
     else:

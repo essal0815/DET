@@ -62,7 +62,7 @@ def sniff(handler):
 #Max query is 253 characters long (textual representation)
 #Max label length is 63 bytes
 def send(data):
-    if config.has_key('proxies') and config['proxies'] != [""]:
+    if 'proxies' in config and config['proxies'] != [""]:
         targets = [config['target']] + config['proxies']
     else:
         targets = [config['target']]
@@ -119,3 +119,4 @@ class Plugin:
         config = conf
         app.register_plugin('dns', {'send': send, 'listen': listen, 'proxy': proxy})
         app_exfiltrate = app
+

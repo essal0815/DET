@@ -112,12 +112,19 @@ def aes_decrypt(message, key=KEY):
         return None
 
 # Do a md5sum of the file
-def md5(f):
-    hash = hashlib.md5()
-    for chunk in iter(lambda: f.read(4096), ""):
-        hash.update(chunk)
-    return hash.hexdigest()
+def md5(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
+# OLD md5
+#def md5(f):
+#    hash = hashlib.md5()
+#    for chunk in iter(lambda: f.read(4096), ""):
+#        hash.update(chunk)
+#    return hash.hexdigest()
 
 function_mapping = {
     'display_message': display_message,
@@ -140,6 +147,9 @@ class Exfiltration(object):
 
         path = "plugins/"
         plugins = {}
+
+        print("Results")
+        print(results)
 
         # Load plugins
         sys.path.insert(0, path)
@@ -178,7 +188,7 @@ class Exfiltration(object):
             function_mapping[mode](message)
 
     def get_random_plugin(self):
-        plugin_name = random.sample(self.plugins, 1)[0]
+        plugin_name = random.sample(sorted(self.plugins), 1)[0]
         return plugin_name, self.plugins[plugin_name]['send']
 
     def use_plugin(self, plugins):
@@ -228,7 +238,8 @@ class Exfiltration(object):
             warning("Got %s: cannot save file %s" % filename)
             raise e
 
-        if (files[jobid]['checksum'] == md5(open(filename))):
+        #if (files[jobid]['checksum'] == md5(open(filename))):
+        if (files[jobid]['checksum'] == md5(filename)):
             ok("File %s recovered" % (fname))
         else:
             warning("File %s corrupt!" % (fname))
@@ -279,20 +290,28 @@ class ExfiltrateFile(threading.Thread):
             string.ascii_letters + string.digits, 7))
         self.checksum = '0'
         self.daemon = True
+        print("CHECKPOINT - Thread Init")
 
     def run(self):
+        print("CHECKPOINT - Thread run() function started")
         # checksum
+        # TODO fix stdin mode if necessary
         if self.file_to_send == 'stdin':
             file_content = sys.stdin.read()
             buf = StringIO(file_content)
             e = StringIO(file_content)
         else:
-            with open(self.file_to_send, 'rb') as f:
-                file_content = f.read()
-            buf = BytesIO(file_content)
-            e = BytesIO(file_content)
-        self.checksum = md5(buf)
-        del file_content
+            #with open(self.file_to_send, 'rb') as f:
+            #    file_content = f.read()
+            #print("CHECKPOINT - File read, before BytesIO")
+            #buf = BytesIO(file_content)
+            #e = BytesIO(file_content)
+            self.checksum = md5(self.file_to_send)
+        #self.checksum = md5(buf)
+        #del file_content
+
+        print("CHECKPOINT - Checksum")
+        print(self.checksum)
 
         # registering packet
         plugin_name, plugin_send_function = self.exfiltrate.get_random_plugin()
@@ -428,9 +447,11 @@ def main():
         threads = []
         for file_to_send in files:
             info("Launching thread for file {0}".format(file_to_send))
+            print(app.__dict__)
             thread = ExfiltrateFile(app, file_to_send)
             threads.append(thread)
             thread.daemon = True
+            print("CHECKPOINT - Thread .start()")
             thread.start()
 
     # Join for the threads
