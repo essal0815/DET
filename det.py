@@ -144,7 +144,7 @@ class Exfiltration(object):
         sys.path.insert(0, path)
         for f in os.listdir(path):
             fname, ext = os.path.splitext(f)
-            if ext == '.py' and self.should_use_plugin(fname):
+            if ext == '.py' and self.should_use_plugin(fname) and not fname == '__init__' and not fname == 'dukpt':
                 mod = __import__(fname)
                 plugins[fname] = mod.Plugin(self, config["plugins"][fname])
 
