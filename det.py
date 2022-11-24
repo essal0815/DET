@@ -314,7 +314,7 @@ class ExfiltrateFile(threading.Thread):
         if COMPRESSION:
             data = compress(data)
 
-        if self.exfiltrated.results.shall_encrypt:
+        if self.exfiltrate.results.shall_encrypt:
             data = aes_encrypt(data, self.exfiltrate.KEY)
 
         f.write(data)
