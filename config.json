@@ -34,5 +34,6 @@
     "min_time_sleep": 1,
     "max_bytes_read": 400,
     "min_bytes_read": 300,
-    "compression": 0
+    "compression": 0,
+    "exfiltration_folder_path": "./exfiltration/"
 }

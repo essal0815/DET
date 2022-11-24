@@ -11,6 +11,7 @@ import json
 import signal
 import struct
 import tempfile
+import traceback
 from random import randint
 from os import listdir
 from os.path import isfile, join
@@ -32,6 +33,7 @@ MAX_TIME_SLEEP = 30
 MIN_BYTES_READ = 1
 MAX_BYTES_READ = 500
 COMPRESSION    = True
+EXFILTRATION_FOLDER_PATH = "./exfiltration/"
 files = {}
 threads = []
 config = None
@@ -222,13 +224,13 @@ class Exfiltration(object):
         if COMPRESSION:
             content = decompress(content)
         try:
-            with open(filename, 'w') as f:
+            with open(EXFILTRATION_FOLDER_PATH + filename, 'w') as f:
                 f.write(content)
         except IOError as e:
             warning("Got %s: cannot save file %s" % filename)
             raise e
 
-        if (files[jobid]['checksum'] == md5(open(filename))):
+        if (files[jobid]['checksum'] == md5(open(EXFILTRATION_FOLDER_PATH + filename))):
             ok("File %s recovered" % (fname))
         else:
             warning("File %s corrupt!" % (fname))
@@ -265,7 +267,8 @@ class Exfiltration(object):
                         #In case this packet was the last missing one
                         if files[jobid]['packets_len'] == len(files[jobid]['data']):
                             self.retrieve_file(jobid)
-        except:
+        except Exception as e:
+            traceback.print_exc()
             raise
             pass
 
@@ -357,7 +360,7 @@ def signal_handler(bla, frame):
 
 
 def main():
-    global MAX_TIME_SLEEP, MIN_TIME_SLEEP, KEY, MAX_BYTES_READ, MIN_BYTES_READ, COMPRESSION
+    global MAX_TIME_SLEEP, MIN_TIME_SLEEP, KEY, MAX_BYTES_READ, MIN_BYTES_READ, COMPRESSION, EXFILTRATION_FOLDER_PATH
     global threads, config
     global dukpt_client, dukpt_server
 
@@ -408,6 +411,8 @@ def main():
     MIN_BYTES_READ = int(config['min_bytes_read'])
     MAX_BYTES_READ = int(config['max_bytes_read'])
     COMPRESSION    = bool(config['compression'])
+    EXFILTRATION_FOLDER_PATH = config['exfiltration_folder_path']
+
     if 'IPEK' in config:
         IPEK = config['IPEK']
         KSN  = config['KSN']
