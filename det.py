@@ -215,7 +215,10 @@ class Exfiltration(object):
         files[jobid]['packets_order'], files[jobid]['data'] = \
                 [list(x) for x in zip(*sorted(zip(files[jobid]['packets_order'], files[jobid]['data'])))]
         content = ''.join(str(v) for v in files[jobid]['data']).decode('hex')
-        content = aes_decrypt(content, self.KEY)
+
+        if self.results.shall_encrypt:
+            content = aes_decrypt(content, self.KEY)
+
         if COMPRESSION:
             content = decompress(content)
         try:
@@ -310,7 +313,11 @@ class ExfiltrateFile(threading.Thread):
         data = e.read()
         if COMPRESSION:
             data = compress(data)
-        f.write(aes_encrypt(data, self.exfiltrate.KEY))
+
+        if self.exfiltrated.results.shall_encrypt:
+            data = aes_encrypt(data, self.exfiltrate.KEY)
+
+        f.write(data)
         f.seek(0)
         e.close()
 
@@ -366,6 +373,9 @@ def main():
                         default=None, help="Plugins to use (eg. '-p dns,twitter')")
     parser.add_argument('-e', action="store", dest="exclude",
                         default=None, help="Plugins to exclude (eg. '-e gmail,icmp')")
+
+    parser.add_argument('-E', action="store_true", dest="shall_encrypt",
+                        default=False, help="Enable encryption, must be the same for client and server")
 
     sleepMode = parser.add_mutually_exclusive_group()
     sleepMode.add_argument('-s', action="store_true", dest="shall_sleep",
