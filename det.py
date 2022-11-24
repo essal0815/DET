@@ -240,7 +240,7 @@ class Exfiltration(object):
                 message = message.split("|!|")
                 jobid = message[0]
                 packet_index = message[1]
-                info("Received {0} bytes of job {1}, with packet_index {2}".format(len(message), jobid, packet_index))
+                info("Received {0} bytes of job {1}, with packet_index {2}".format(len(data), jobid, packet_index))
 
                 # register packet
                 if (message[2] == "REGISTER"):
