@@ -104,7 +104,8 @@ def send(data):
             q.send(target, port, timeout=0.01)
             fragment_index = fragment_index + 1
             
-        except:
+        except Exception as e:
+            print(e)
             # app_exfiltrate.log_message('warning', "[dns] Failed to send DNS request")
             pass
 
