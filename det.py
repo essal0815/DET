@@ -337,12 +337,14 @@ class ExfiltrateFile(threading.Thread):
             plugin_send_function(data)
             packet_index = packet_index + 1
 
+            shall_static_sleep = int(self.exfiltrate.results.shall_static_sleep)
+
             if self.exfiltrate.results.shall_sleep:
                 time_to_sleep = randint(1, MAX_TIME_SLEEP)
                 display_message("Sleeping for %s seconds" % time_to_sleep)
                 time.sleep(time_to_sleep)
-            elif self.exfiltrate.results.shall_static_sleep:
-                time.sleep(1/1000.)
+            elif shall_static_sleep:
+                time.sleep(shall_static_sleep/1000.)
 
         # last packet
         plugin_name, plugin_send_function = self.exfiltrate.get_random_plugin()
