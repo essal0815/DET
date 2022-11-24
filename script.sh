@@ -11,12 +11,14 @@ SLEEP_TIME_IN_GROUP=1
 SLEEP_TIME_BETWEEN_GROUPS=5
 
 declare -a PROTOCOLS=("dns" "ftp" "icmp" "smtp" "tcp" "udp")
-declare -a FILENAMES=("./exfiltrated-tiny.json" "./exfiltrated-small.pdf" "./exfiltrated-medium.doc" "./exfiltrated-big.jpg")
+declare -a FILENAMES=("./exfiltrated-tiny.json" "./exfiltrated-small.pdf" "./exfiltrated-medium.jpg" "./exfiltrated-big.doc")
 declare -a STATIC_SLEEP_TIMES=(1000 10 10 10)
 
-TIMING_FILE="time_required_${date}.txt"
+DATE=$(date --iso-8601=minutes)
+TIMING_FILE="time_required_${DATE}.txt"
 
-touch TIMING_FILE
+
+touch $TIMING_FILE
 
 for i in 0 1 2 3
 do
@@ -46,7 +48,7 @@ do
         echo "" >> $TIMING_FILE
 
         echo "$protocol finished"
-        echo "Wait $SLEEP_TIME_IN_GROUP ms, then start next protocol"
+        echo "Wait $SLEEP_TIME_IN_GROUP s, then start next protocol"
         echo ""
         echo ""
         sleep $SLEEP_TIME_IN_GROUP
@@ -54,7 +56,7 @@ do
     done
 
     echo "$FILENAMES[$i] finished"
-    echo "Wait $SLEEP_TIME_BETWEEN_GROUPS ms, then start next file"
+    echo "Wait $SLEEP_TIME_BETWEEN_GROUPS s, then start next file"
     echo ""
     echo ""
     echo ""
