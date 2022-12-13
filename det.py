@@ -236,6 +236,9 @@ class Exfiltration(object):
             warning("File %s corrupt!" % (fname))
 
         del files[jobid]
+        
+        sys.stdout.flush()
+        
 
     def retrieve_data(self, data):
         global files
@@ -267,6 +270,9 @@ class Exfiltration(object):
                         #In case this packet was the last missing one
                         if files[jobid]['packets_len'] == len(files[jobid]['data']):
                             self.retrieve_file(jobid)
+            
+            sys.stdout.flush()
+        
         except Exception as e:
             traceback.print_exc()
             raise
@@ -458,6 +464,8 @@ def main():
             threads.append(thread)
             thread.daemon = True
             thread.start()
+
+    sys.stdout.flush()
 
     # Join for the threads
     for thread in threads:
