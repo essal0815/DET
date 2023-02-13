@@ -2,3 +2,4 @@
 *.pem
 build
 dist
+exfiltration/

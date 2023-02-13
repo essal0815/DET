@@ -18,7 +18,7 @@ else:
 headers = requests.utils.default_headers()
 headers.update({'User-Agent': user_agent})
 
-with open('plugins/misc/default_apache_page.html', 'r') as html_file:
+with open('plugins/misc/default_page.html', 'r') as html_file:
     html_content = html_file.read()
 
 config = None

