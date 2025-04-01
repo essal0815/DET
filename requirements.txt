@@ -5,7 +5,7 @@ pycryptodome
 slackclient
 bitstring
 dpkt>=1.9.1
-pyftpdlib
+#pyftpdlib
 email==6.0.0.a1
 scapy
 pygithub
